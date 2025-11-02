@@ -3,9 +3,15 @@ import sqlite3
 import matplotlib.pyplot as plt
 import os
 import logging
+from datetime import datetime
 
+# Logging setup
 logging.basicConfig(level=logging.INFO, format="%(levelname)s:%(message)s")
-os.makedirs("output", exist_ok=True)
+
+# Get today's date for versioned folder names
+today = datetime.now().strftime("%Y-%m-%d")
+daily_output_dir = os.path.join("output", today)
+os.makedirs(daily_output_dir, exist_ok=True)
 
 def run_pipeline(input_csv, sqlite_db_path, agg_csv_path, chart_path):
     # 1. Ingest
@@ -19,11 +25,13 @@ def run_pipeline(input_csv, sqlite_db_path, agg_csv_path, chart_path):
     df['price'] = df['price'].astype(float)
     df['total_amount'] = df['quantity'] * df['price']
     df['month'] = df['date'].dt.to_period('M').astype(str)
+    logging.info("Data cleaned and transformed. Rows remaining: %d", len(df))
 
     # 3. Store cleaned data into SQLite
     conn = sqlite3.connect(sqlite_db_path)
     df.to_sql("cleaned_sales", conn, if_exists="replace", index=False)
     conn.close()
+    logging.info("Saved cleaned data to database: %s", sqlite_db_path)
 
     # 4. Aggregate
     agg = df.groupby('region', as_index=False).agg(
@@ -32,6 +40,7 @@ def run_pipeline(input_csv, sqlite_db_path, agg_csv_path, chart_path):
         avg_order_value=pd.NamedAgg(column='total_amount', aggfunc='mean')
     ).sort_values('total_sales_amount', ascending=False)
     agg.to_csv(agg_csv_path, index=False)
+    logging.info("Aggregated data saved to: %s", agg_csv_path)
 
     # 5. Plot
     plt.figure(figsize=(6,4))
@@ -42,12 +51,14 @@ def run_pipeline(input_csv, sqlite_db_path, agg_csv_path, chart_path):
     plt.tight_layout()
     plt.savefig(chart_path)
     plt.close()
+    logging.info("Chart saved to: %s", chart_path)
 
 if __name__ == "__main__":
+    # Define file paths with daily versioning
     run_pipeline(
         input_csv="data/raw_sales.csv",
-        sqlite_db_path="output/sales.db",
-        agg_csv_path="output/sales_by_region.csv",
-        chart_path="output/sales_by_region.png"
+        sqlite_db_path=os.path.join(daily_output_dir, f"sales_{today}.db"),
+        agg_csv_path=os.path.join(daily_output_dir, f"sales_by_region_{today}.csv"),
+        chart_path=os.path.join(daily_output_dir, f"sales_by_region_{today}.png")
     )
-    print("Pipeline finished. Check the output/ folder.")
+    print(f"✅ Pipeline finished for {today}. Check the folder: {daily_output_dir}")
