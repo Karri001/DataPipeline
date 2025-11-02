@@ -2,9 +2,10 @@ name: Run Data Pipeline
 
 on:
   schedule:
-    # Runs every day at 6:00 AM UTC
-    - cron: '0 6 * * *'
-  workflow_dispatch:  # allows you to run it manually anytime
+    - cron: '0 6 * * *'  # every day at 6:00 AM UTC
+  workflow_dispatch:  # allows manual run anytime
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -27,6 +28,16 @@ jobs:
     - name: Run pipeline
       run: python pipeline.py
 
+    # ✅ Commit and push new output files back to repo
+    - name: Commit and push updated output
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        git add output/
+        git commit -m "Auto-update pipeline output $(date)" || echo "No changes to commit"
+        git push
+
+    # (Optional) still upload as artifact
     - name: Upload output folder as artifact
       uses: actions/upload-artifact@v4
       with:
