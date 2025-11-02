@@ -16,7 +16,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       with:
-        fetch-depth: 0  # ensures full history for pull/rebase
+        fetch-depth: 0  # full git history for pull/rebase
 
     - name: Set up Python
       uses: actions/setup-python@v5
@@ -31,7 +31,7 @@ jobs:
     - name: Run pipeline
       run: python pipeline.py
 
-    # ✅ Safely sync with main branch even with local changes
+    # ✅ Safely sync with main branch (handles local changes)
     - name: Sync with latest main branch safely
       run: |
         git config --global user.name "github-actions[bot]"
@@ -41,14 +41,17 @@ jobs:
         git rebase origin/main || git rebase --abort
         git stash pop || echo "No stash to pop"
 
-    # ✅ Commit and push new outputs
+    # ✅ Commit and push new outputs (only if files exist)
     - name: Commit and push updated output
       run: |
-        git add output/ pipeline_log.csv
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        if [ -d "output" ]; then git add output/; fi
+        if [ -f "pipeline_log.csv" ]; then git add pipeline_log.csv; fi
         git commit -m "Auto-update pipeline output $(date)" || echo "No changes to commit"
         git push origin main
 
-    # (Optional) Upload output as artifact for download
+    # (Optional) Upload output as artifact
     - name: Upload output folder as artifact
       uses: actions/upload-artifact@v4
       with:
