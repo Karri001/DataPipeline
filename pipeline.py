@@ -46,7 +46,7 @@ def run_pipeline(input_csv, sqlite_db_path, agg_csv_path, chart_path):
         agg.to_csv(agg_csv_path, index=False)
         logging.info("Aggregated data saved to: %s", agg_csv_path)
 
-        # 5. Plot
+        # 5. Plot by region
         plt.figure(figsize=(6,4))
         plt.bar(agg['region'], agg['total_sales_amount'])
         plt.title("Total Sales Amount by Region")
@@ -86,6 +86,34 @@ def log_run_summary(df, agg, status):
 
     logging.info("Logged pipeline run to: %s", log_file_path)
 
+def visualize_pipeline_log(log_file_path):
+    """Create a summary chart from pipeline_log.csv if it exists."""
+    if not os.path.exists(log_file_path):
+        logging.warning("No pipeline_log.csv found, skipping visualization.")
+        return
+
+    log_df = pd.read_csv(log_file_path)
+    if log_df.empty:
+        logging.warning("Log file is empty, skipping visualization.")
+        return
+
+    # Sort by run_date to ensure correct time order
+    log_df = log_df.sort_values("run_date")
+
+    # Plot total sales trend
+    plt.figure(figsize=(7,4))
+    plt.plot(log_df["run_date"], log_df["total_sales"], marker="o", linewidth=2)
+    plt.title("Total Sales Trend Over Time")
+    plt.xlabel("Run Date")
+    plt.ylabel("Total Sales")
+    plt.grid(True, linestyle="--", alpha=0.6)
+    plt.tight_layout()
+
+    summary_chart = os.path.join("output", "pipeline_summary.png")
+    plt.savefig(summary_chart)
+    plt.close()
+    logging.info(f"Pipeline summary chart saved to: {summary_chart}")
+
 if __name__ == "__main__":
     run_pipeline(
         input_csv="data/raw_sales.csv",
@@ -93,4 +121,8 @@ if __name__ == "__main__":
         agg_csv_path=os.path.join(daily_output_dir, f"sales_by_region_{today}.csv"),
         chart_path=os.path.join(daily_output_dir, f"sales_by_region_{today}.png")
     )
+
+    # After the pipeline finishes, generate the summary chart
+    visualize_pipeline_log(log_file_path)
+
     print(f"✅ Pipeline finished for {today}. Check {daily_output_dir} and pipeline_log.csv")
