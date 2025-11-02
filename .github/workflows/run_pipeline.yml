@@ -4,8 +4,9 @@ on:
   schedule:
     - cron: '0 6 * * *'  # every day at 6:00 AM UTC
   workflow_dispatch:  # allows manual run anytime
+
 permissions:
-  contents: write
+  contents: write  # allow workflow to push commits
 
 jobs:
   build:
@@ -14,6 +15,8 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # ensures full git history (needed for push)
 
     - name: Set up Python
       uses: actions/setup-python@v5
@@ -28,16 +31,22 @@ jobs:
     - name: Run pipeline
       run: python pipeline.py
 
+    # ✅ Pull latest changes before committing (avoids push errors)
+    - name: Sync with latest main branch
+      run: |
+        git fetch origin main
+        git pull origin main --rebase
+
     # ✅ Commit and push new output files back to repo
     - name: Commit and push updated output
       run: |
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
-        git add output/
+        git add output/ pipeline_log.csv
         git commit -m "Auto-update pipeline output $(date)" || echo "No changes to commit"
-        git push
+        git push origin main
 
-    # (Optional) still upload as artifact
+    # (Optional) Upload output as artifact for easy download
     - name: Upload output folder as artifact
       uses: actions/upload-artifact@v4
       with:
