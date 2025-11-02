@@ -1,0 +1,4 @@
+order_id,date,customer,region,product,quantity,price
+O0001,2025-10-13,Customer_14,West,Gadget C,1,32.46
+O0002,2025-10-17,Customer_1,North,Gadget C,6,177.63
+O0003,2025-10-03,Customer_46,West,Gadget C,7,155.83
