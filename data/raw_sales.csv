@@ -2,8 +2,12 @@ order_id,date,customer,region,product,quantity,price
 O0001,2025-10-13,Customer_14,West,Gadget C,1,32.46
 O0002,2025-10-17,Customer_1,North,Gadget C,6,177.63
 O0003,2025-10-03,Customer_46,West,Gadget C,7,155.83
-O0004,2025-10-05,Customer_6,south,Gadget C,3,1544.83
+O0004,2025-10-05,Customer_6,South,Gadget C,3,1544.83
 O0005,2025-10-1,Customer_4,West,Gadget A,1,32.46
 O0006,2025-10-7,Customer_10,North,Gadget B,6,177.63
 O0007,2025-10-30,Customer_64,West,Gadget C,7,155.83
-O0008,2025-10-15,Customer_60,south,Gadget D,3,1544.83
+O0008,2025-10-15,Customer_0,South,Gadget D,3,1544.83
+O0009,2025-10-03,Customer_42,East,Gadget C,7,155.83
+O00010,2025-10-05,Customer_64,SouthWest,Gadget C,3,1544.83
+O00011,2025-10-1,Customer_47,NorthWest,Gadget A,1,32.46
+O00012,2025-10-7,Customer_100,NorthEast,Gadget B,6,177.63
